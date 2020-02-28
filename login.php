@@ -1,7 +1,11 @@
 <?php
+session_start();
+if(isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true){
+    header("location: acquisitions.php");
+    exit;
+}
 
 include('db.php');
-session_start();
 
 if (isset($_POST['login'])) {
 
@@ -19,9 +23,18 @@ if (isset($_POST['login'])) {
         echo '<p class="error">Username password combination is wrong!</p>';
     } else {
         $row = pg_fetch_row($result);
-        if (password_verify($password, $row[3])) {
-            $_SESSION['user_id'] = $row[0];
+        if (password_verify($password, $row[2])) {
+            $_SESSION['loggedin'] = true;
+            $_SESSION['id'] = $row[0];
+            $_SESSION['username'] = $row[1];
+            $_SESSION['email'] = $row[3];
+            $_SESSION['name'] = $row[4];
+            $_SESSION['created_at'] = $row[5];
+            $_SESSION['last_login'] = $row[6];
+            $sql = "UPDATE users SET last_login = now()::timestamp WHERE id = '$row[0]'";
+            $result = pg_query($db, $sql);
             echo '<p class="success">Congratulations, you are logged in!</p>';
+            header("location: acquisitions.php");
         } else {
             echo '<p class="error">Username password combination is wrong!!!</p>';
         }
