@@ -74,7 +74,7 @@ require "db.php";
       left join objects on objects.id=acquisitions.acquired_object_id
       order by id) as q2
       on q1.id=q2.id
-      order by acquired_at desc,price_amount desc;";
+      order by acquired_at desc NULLS last,price_amount desc NULLS last;";
 
    $result = pg_query($db, $sql);
    if (!$result) {
