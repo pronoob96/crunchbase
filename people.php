@@ -22,6 +22,17 @@ if (!$result) {
   exit;
 }
 $row = pg_fetch_row($result)
+$sql1 = "Select object_id,degree_type,subject,institution,graduated_at from degrees
+				where object_id = '$cid'";
+   
+$result1 = pg_query($db, $sql1);
+if(!$result1) {
+    echo pg_last_error($db);
+    exit;
+}
+$row1 = pg_fetch_row($result1)
+	
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,14 +42,36 @@ $row = pg_fetch_row($result)
 </head>
 
 <body>
+      
+            <img  style="border-radius: 6px;" src="<?php echo $row[8] ?>"/>
+        
+		<h3> About:</h3>
+		<table class=\"table\">
+        <tr>
+            <th>Degree</th>
+            <th>Subject</th>
+            <th>Institution</th>
+			<th>Class of</th>
+        </tr>
+        <?php
+        // output data of each row
+        while ($row = pg_fetch_row($result)) { ?>
 
-  <img style="border-radius: 6px;" src="<?php echo $row[8] ?>" />
-
-  About:
-  <?php echo $row[7];
-  pg_close($db);
-  ?>
-
-</body>
-
+            <tr>
+                <td><?php echo $row[1]; ?></a></td>
+                <td> <?php echo $row[2]; ?> </td>
+				<td> <?php echo $row[3]; ?> </td>
+				<td> <?php echo $row[4]; ?> </td>
+            </tr>
+        <?php
+        } ?>
+    </table>
+		
+		
+        <p>
+		<?php echo $row[7];
+        pg_close($db);
+        ?>
+		</p>
+   </body>
 </html>
