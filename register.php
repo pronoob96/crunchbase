@@ -13,7 +13,7 @@ if (isset($_POST['register'])) {
     $name = $_POST['name'];
     $email = $_POST['email'];
     $password = $_POST['password'];
-    $password_hash = password_hash($password, PASSWORD_BCRYPT);
+    
 
     $query1 = pg_query($db, "SELECT * FROM users WHERE e_mail='$email'");
     $query2 = pg_query($db, "SELECT * FROM users WHERE username='$username'");
@@ -27,7 +27,7 @@ if (isset($_POST['register'])) {
     }
 
     if (pg_numrows($query1) == 0 && pg_numrows($query2) == 0) {
-        $result = pg_query($db, "INSERT INTO users(name,username,password,e_mail,created_at,last_login) VALUES ('$name','$username','$password_hash','$email',now()::timestamp,now()::timestamp)");
+        $result = pg_query($db, "INSERT INTO users(name,username,password,e_mail,created_at,last_login) VALUES ('$name','$username',hashcode('$password'),'$email',now()::timestamp,now()::timestamp)");
 
         if ($result) {
             echo '<p class="success">Your registration was successful!</p>';

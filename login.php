@@ -13,31 +13,27 @@ if (isset($_POST['login'])) {
     $password = $_POST['password'];
 
 
-    $sql = "SELECT * FROM users WHERE username='$username'";
+    $sql = "SELECT * FROM users WHERE username='$username' and password=hashcode('$password')";
 
     $result = pg_query($db, $sql);
 
 
 
-    if (!$result) {
+    if (pg_numrows($result) == 0) {
         echo '<p class="error">Username password combination is wrong!</p>';
     } else {
         $row = pg_fetch_row($result);
-        if (password_verify($password, $row[2])) {
-            $_SESSION['loggedin'] = true;
-            $_SESSION['id'] = $row[0];
-            $_SESSION['username'] = $row[1];
-            $_SESSION['email'] = $row[3];
-            $_SESSION['name'] = $row[4];
-            $_SESSION['created_at'] = $row[5];
-            $_SESSION['last_login'] = $row[6];
-            $sql = "UPDATE users SET last_login = now()::timestamp WHERE id = '$row[0]'";
-            $result = pg_query($db, $sql);
-            echo '<p class="success">Congratulations, you are logged in!</p>';
-            header("location: acquisitions.php");
-        } else {
-            echo '<p class="error">Username password combination is wrong!!!</p>';
-        }
+        $_SESSION['loggedin'] = true;
+        $_SESSION['id'] = $row[0];
+        $_SESSION['username'] = $row[1];
+        $_SESSION['email'] = $row[3];
+        $_SESSION['name'] = $row[4];
+        $_SESSION['created_at'] = $row[5];
+        $_SESSION['last_login'] = $row[6];
+        $sql = "UPDATE users SET last_login = now()::timestamp WHERE id = '$row[0]'";
+        $result = pg_query($db, $sql);
+        echo '<p class="success">Congratulations, you are logged in!</p>';
+        header("location: acquisitions.php");
     }
 }
 
