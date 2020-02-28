@@ -22,12 +22,13 @@ where nm.id = investments.investor_object_id) as t
 group by t.funding_round_id) as q2
 on q1.funding_round_id = q2.funding_round_id
 order by q1.funded_at DESC NULLS last
-LIMIT 10;"
+LIMIT 10;";
 
 $result = pg_query($db, $sql);
 if (!$result) {
     echo pg_last_error($db);
     exit;
+}
 	
 $sql1 = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.price_amount,q1.price_currency_code,q2.acquired_at,q2.source_description from
       (select acquisitions.id,acquiring_object_id,normalized_name as By,price_amount,price_currency_code
@@ -49,7 +50,7 @@ $sql1 = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.pric
       exit;
    }
 	
-}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -90,8 +91,9 @@ $sql1 = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.pric
          </tr>
       <?php
       } ?>
-	  <tr> <a href="acquisitions.php">Show all</a><\tr>
+	  
    </table>
+   <a href="acquisitions.php">Show all</a>
 
 
     <table class=\"table\">
@@ -114,8 +116,9 @@ $sql1 = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.pric
             </tr>
         <?php
         } ?>
-		<tr> <a href="fundings.php">Show all</a><\tr>
+		
     </table>
+    <a href="fundings.php">Show all</a>
     <?php
     pg_close($db);
     ?>

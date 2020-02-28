@@ -21,7 +21,7 @@ if (!$result) {
   echo pg_last_error($db);
   exit;
 }
-$row = pg_fetch_row($result)
+$row = pg_fetch_row($result);
 $sql1 = "Select object_id,degree_type,subject,institution,graduated_at from degrees
 				where object_id = '$cid'";
    
@@ -55,13 +55,13 @@ $row1 = pg_fetch_row($result1)
         </tr>
         <?php
         // output data of each row
-        while ($row = pg_fetch_row($result)) { ?>
+        while ($row1 = pg_fetch_row($result1)) { ?>
 
             <tr>
-                <td><?php echo $row[1]; ?></a></td>
-                <td> <?php echo $row[2]; ?> </td>
-				<td> <?php echo $row[3]; ?> </td>
-				<td> <?php echo $row[4]; ?> </td>
+                <td><?php echo $row1[1]; ?></a></td>
+                <td> <?php echo $row1[2]; ?> </td>
+				<td> <?php echo $row1[3]; ?> </td>
+				<td> <?php echo $row1[4]; ?> </td>
             </tr>
         <?php
         } ?>
