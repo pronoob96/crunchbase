@@ -1,4 +1,13 @@
 <?php
+
+session_start();
+
+// Check if the user is logged in, if not then redirect him to login page
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    header("location: login.php");
+    exit;
+}
+
 require "db.php";
 ?>
 <!DOCTYPE html>
@@ -69,7 +78,7 @@ left join
 (select id,name from objects) as nm
 on nm.id = funding_rounds.object_id) as q1
 left join
-(Select t.funding_round_id,STRING_AGG(t.iname,',') as investors
+(Select t.funding_round_id,STRING_AGG(t.iname,', ') as investors
 from (Select nm.name as iname,investments.* from 
 (select id,name from objects) as nm,investments
 where nm.id = investments.investor_object_id) as t
@@ -97,7 +106,7 @@ order by q1.funded_at DESC NULLS last
 
          <tr>
             <td><a href="company.php?id=<?php echo $row[3]; ?>"><?php echo $row[0]; ?></a></td>
-            <td><a href="<?php echo $row[19];?>"><?php echo $row[5]; ?></a></td>
+            <td><?php echo $row[5]; ?></td>
             <td>
                <button id="myBtn"><?php echo $row[9] . " ";echo $row[8]; ?></button>
 

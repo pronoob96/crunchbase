@@ -1,7 +1,7 @@
 <?php
 session_start();
 if(isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true){
-    header("location: acquisitions.php");
+    header("location: main_page.php");
     exit;
 }
 

@@ -12,12 +12,12 @@ require "db.php";
 $cid = $_GET['id'];
 $sql = "SELECT * from objects where id='$cid'";
 $sql1 = "SELECT objects.id,ids.pid,objects.name
-			from (Select people.object_id as iid,people.id as pid 
+            from (Select people.object_id as iid,people.id as pid 
                     from (SELECT name from objects 
-				    where id = '$cid') as ni,people
-			where people.affiliation_name=ni.name) as ids,objects
-		where objects.id = ids.iid
-		order by ids.pid asc";
+                    where id = '$cid') as ni,people
+            where people.affiliation_name=ni.name) as ids,objects
+        where objects.id = ids.iid
+        order by ids.pid asc";
 
 $result = pg_query($db, $sql);
 if (!$result) {
@@ -47,15 +47,30 @@ where object_id = '$cid';";
    }
 
 $sql3 = "SELECT * from objects
-where invested_companies <> 0
-and entity_type = 'Company'
-order by invested_companies DESC;";
+WHERE invested_companies <> 0
+AND entity_type = 'Company'
+ORDER BY invested_companies DESC;";
 
    $result3 = pg_query($db, $sql3);
    if (!$result3) {
       echo pg_last_error($db);
       exit;
    }
+
+$sql4 = "SELECT count(mn.id),mn.category_code from
+(Select objects.* from objects,
+(Select * from investments
+where investor_object_id = '$cid') as inv
+where objects.id = inv.funded_object_id) as mn
+group by mn.category_code
+order by count(mn.id) DESC
+;";
+
+    $result4 = pg_query($db, $sql4);
+    if (!$result4) {
+       echo pg_last_error($db);
+       exit;
+    }
    
 ?>
 
@@ -164,13 +179,40 @@ order by invested_companies DESC;";
 
     <?php
     if($row[28]>0)
-    {   echo "Investment History: Known to invest in new Start-Ups and Services Companies"; echo "</br>";
+    {   echo "Investment History:"; echo "</br>";
         echo "Number of Investments-"; echo $row[28];echo "</br>";
         echo "First Investment at-"; echo $row[25];echo "</br>";
         echo "Last Investment at-"; echo $row[26];echo "</br>"; ?>
         <a href="invested_companies.php?id=<?php echo $row[0]; ?>">Detail of Invested Companies</a>
         <?php
     } ?>
+    </br>
+    <?php
+    if(pg_num_rows($result4)>0){ ?>
+    Major Invested Sector-
+    <table class=\"table\">
+      <tr>
+         <th>Sector</th>
+         <th>Number of Companies invested in-</th>
+      </tr>
+      <?php
+      // output data of each row
+      while ($row4 = pg_fetch_row($result4)) { ?>
+
+         <tr>
+            <td><?php echo $row4[1]; ?></td>
+            <td><?php echo $row4[0]; ?></td>
+         </tr>
+      <?php
+      } 
+      ?>
+      
+   </table>
+   <?php
+   } 
+   ?>
+   
+
 </body>
 
 </html>

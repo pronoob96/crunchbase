@@ -15,7 +15,7 @@ left join
 (select id,name from objects) as nm
 on nm.id = funding_rounds.object_id) as q1
 left join
-(Select t.funding_round_id,STRING_AGG(t.iname,',') as investors
+(Select t.funding_round_id,STRING_AGG(t.iname,', ') as investors
 from (Select nm.name as iname,investments.* from 
 (select id,name from objects) as nm,investments
 where nm.id = investments.investor_object_id) as t
@@ -41,14 +41,26 @@ $sql1 = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.pric
       left join objects on objects.id=acquisitions.acquired_object_id
       order by id) as q2
       on q1.id=q2.id
-      order by acquired_at desc,price_amount desc
-	  LIMIT 10;";
+      order by acquired_at desc NULLS last,price_amount desc NULLS last LIMIT 10;";
 
    $result1 = pg_query($db, $sql1);
    if (!$result1) {
       echo pg_last_error($db);
       exit;
    }
+
+$sql2 = "Select nm.name,ipos.* from ipos
+left join
+(select id,name from objects) as nm
+on ipos.object_id = nm.id
+order by ipos.public_at desc NULLS last
+LIMIT 10;";
+
+$result2 = pg_query($db, $sql2);
+if (!$result2) {
+    echo pg_last_error($db);
+    exit;
+}
 	
 
 ?>
@@ -56,7 +68,7 @@ $sql1 = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.pric
 <html lang="en">
 
 <head>
-    <title>Search Engine</title>
+    <title>Main Page</title>
 </head>
 
 <body>
@@ -86,8 +98,7 @@ $sql1 = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.pric
             <td><a href="company.php?id=<?php echo $row1[1]; ?>"><?php echo $row1[3]; ?></a></td>
             <td> <?php echo $row1[6]; ?> </td>
      
-			<td><?php echo $row1[7]; ?></a></td>
-            <td> <?php echo $row1[5] . " "; echo $row1[4]; ?> </td>
+			      <td> <?php echo $row1[5] . " "; echo $row1[4]; ?> </td>
          </tr>
       <?php
       } ?>
@@ -101,7 +112,7 @@ $sql1 = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.pric
             <th>Organization Name</th>
             <th>Transaction Name</th>
             <th>Money Raised</th>
-			<th>Investors </th>
+			      <th>Investors </th>
         </tr>
         <?php
         // output data of each row
@@ -111,7 +122,7 @@ $sql1 = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.pric
                 
                 <td><a href="company.php?id=<?php echo $row[3]; ?>"><?php echo $row[0]; ?></a></td>
                 <td><?php echo $row[5]; ?></td>
-                <td><?php echo $row[7]; ?></a></td>
+                <td><?php echo $row[9] . " ";echo $row[8]; ?></td>
                 <td><?php echo $row[25]; ?> </td>
             </tr>
         <?php
@@ -119,6 +130,29 @@ $sql1 = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.pric
 		
     </table>
     <a href="fundings.php">Show all</a>
+
+
+  <table class=\"table\">
+        <tr>
+            <th>Company Name</th>
+            <th>Stock Listed in</th>
+            <th>Money Raised</th>
+        </tr>
+        <?php
+        // output data of each row
+        while ($row2 = pg_fetch_row($result2)) { ?>
+
+            <tr>
+                
+                <td><a href="company.php?id=<?php echo $row2[3]; ?>"><?php echo $row2[0]; ?></a></td>
+                <td><?php echo $row2[9]; ?></td>
+                <td> <?php echo $row2[7] . " "; echo $row2[6]; ?> </td>
+            </tr>
+        <?php
+        } ?>
+    
+    </table>
+    <a href="ipos.php">Show all</a>
     <?php
     pg_close($db);
     ?>

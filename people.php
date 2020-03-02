@@ -13,7 +13,7 @@ $cid = $_GET['id'];
 $sql = "SELECT people.*,objects.name,objects.overview, objects.logo_url
 			from
 			(SELECT * from people 
-				where object_id='$cid') as people,objects
+				where object_id='$cid') AS people,objects
 			where objects.id = people.object_id";
 
 $result = pg_query($db, $sql);
@@ -22,17 +22,15 @@ if (!$result) {
   exit;
 }
 $row = pg_fetch_row($result);
-$sql1 = "Select object_id,degree_type,subject,institution,graduated_at from degrees
+$sql1 = "SELECT object_id,degree_type,subject,institution,graduated_at from degrees
 				where object_id = '$cid'";
-   
+
 $result1 = pg_query($db, $sql1);
 if(!$result1) {
     echo pg_last_error($db);
     exit;
 }
-$row1 = pg_fetch_row($result1)
 	
-
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -39,13 +39,15 @@ if (!$result) {
             <tr>
                 <?php if ($row[1] == 'Company') { ?>
                     <td><a href="company.php?id=<?php echo $row[0]; ?>"><?php echo $row[4]; ?></a></td>
-                <?php } else { ?>
+                <?php } else if($row[1]== 'People') { ?>
                     <td><a href="people.php?id=<?php echo $row[0]; ?>"><?php echo $row[4]; ?></a></td>
+                <?php } else { ?>
+                    <td><a href="ventures.php?id=<?php echo $row[0]; ?>"><?php echo $row[4]; ?></a></td>
                 <?php } ?>
                 <td><?php echo $row[1]; ?></a></td>
                 <td> <?php echo $row[9]; ?> </td>
             </tr>
-        <?php
+        <?php 
         } ?>
     </table>
     <?php

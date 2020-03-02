@@ -14,7 +14,7 @@ require "db.php";
 <html lang="en">
 
 <head>
-   <title>Acquisitions</title>
+   <title>IPOs</title>
    <style>
       body {
          font-family: Arial, Helvetica, sans-serif;
@@ -72,18 +72,13 @@ require "db.php";
 
 <body>
    <?php
-   $sql = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.price_amount,q1.price_currency_code,q2.acquired_at,q2.source_description from
-      (select acquisitions.id,acquiring_object_id,normalized_name as By,price_amount,price_currency_code
-       from acquisitions
-      left join objects on objects.id=acquisitions.acquiring_object_id
-      order by id) as q1 
-      left join
-      (select acquisitions.id,acquired_object_id,normalized_name as OF,acquired_at,source_description
-       from acquisitions
-      left join objects on objects.id=acquisitions.acquired_object_id
-      order by id) as q2
-      on q1.id=q2.id
-      order by acquired_at desc NULLS last,price_amount desc NULLS last;";
+  
+$sql = "Select nm.name,ipos.* from ipos
+left join
+(select id,name from objects) as nm
+on ipos.object_id = nm.id
+order by ipos.public_at desc NULLS last;
+";
 
    $result = pg_query($db, $sql);
    if (!$result) {
@@ -93,22 +88,21 @@ require "db.php";
    ?>
    <table class=\"table\">
       <tr>
-         <th>Acquiree Name</th>
-         <th>Acquirer Name</th>
-         <th>Acquired At</th>
-         <th>Price</th>
+         <th>Company Name</th>
+         <th>Stock Listed</th>
+         <th>Money Raised</th>
+		   <th>Public at </th>
       </tr>
       <?php
       // output data of each row
       while ($row = pg_fetch_row($result)) { ?>
 
          <tr>
-            <td><a href="company.php?id=<?php echo $row[0]; ?>"><?php echo $row[2]; ?></a></td>
-            <td><a href="company.php?id=<?php echo $row[1]; ?>"><?php echo $row[3]; ?></a></td>
-            <td> <?php echo $row[6]; ?> </td>
+            <td><a href="company.php?id=<?php echo $row[3]; ?>"><?php echo $row[0]; ?></a></td>
+            <td><?php echo $row[9]; ?></td>
+            <td><a href="<?php echo $row[10]; ?>"><?php echo $row[7] . " ";echo $row[6];?></a></td>
             <td>
-               <button id="myBtn"><?php echo $row[5] . " ";
-                                    echo $row[4]; ?></button>
+               <button id="myBtn"><?php echo $row[8];?></button>
 
                <!-- The Modal -->
                <div id="myModal" class="modal">
@@ -116,12 +110,13 @@ require "db.php";
                   <!-- Modal content -->
                   <div class="modal-content">
                      <span class="close">&times;</span>
-                     <p><?php echo $row[7]; ?></p>
+                     <p><?php echo $row[11]; ?></p>
                   </div>
 
                </div>
 
             </td>
+
          </tr>
       <?php
       } ?>
