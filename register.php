@@ -54,7 +54,7 @@ if (isset($_POST['register'])) {
 <html lang="en">
 
 <head>
-    <title>Login Page</title>
+    <title>Register</title>
 </head>
 
 <body>
