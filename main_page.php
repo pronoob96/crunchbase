@@ -70,7 +70,7 @@ from objects,follows
 where follows.username='$username' and objects.id=follows.company_id
 ) as nm
 where milestones.object_id = nm.id
-order by milestones.milestone_at desc NULLS last LIMIT 10";
+order by milestones.milestone_at desc NULLS last LIMIT 10;";
 
 $result3 = pg_query($db, $sql3);
 if (!$result3) {
