@@ -23,7 +23,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         if (pg_numrows($query2) == 0) {
             $result = pg_query($db, "UPDATE users SET username='$new_username' WHERE username='$old_username'");
             $_SESSION['username'] = $new_username;
-            echo $_SESSION['username'];
+            echo '<p class="error">Username Updated</p>';
         }
     }
 
