@@ -33,7 +33,7 @@ if (isset($_POST['login'])) {
         $sql = "UPDATE users SET last_login = now()::timestamp WHERE id = '$row[0]'";
         $result = pg_query($db, $sql);
         echo '<p class="success">Congratulations, you are logged in!</p>';
-        header("location: acquisitions.php");
+        header("location: main_page.php");
     }
 }
 

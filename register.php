@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
-    header("location: acquisitions.php");
+    header("location: main_page.php");
     exit;
 }
 
@@ -41,7 +41,7 @@ if (isset($_POST['register'])) {
             $_SESSION['name'] = $row[4];
             $_SESSION['created_at'] = $row[5];
             $_SESSION['last_login'] = $row[6];
-            header("location: acquisitions.php");
+            header("location: main_page.php");
         } else {
             echo '<p class="error">Something went wrong!</p>';
         }
