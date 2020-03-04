@@ -9,7 +9,26 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 }
 
 require "db.php";
-$sql = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.price_amount,q1.price_currency_code,q2.acquired_at,q2.source_description from
+$field = 'acquired_at';
+$sort = 'DESC';
+if (isset($_GET['sorting'])) {
+   if ($_GET['sorting'] == 'DESC') {
+      $sort = 'DESC';
+   } else {
+      $sort = 'ASC';
+   }
+
+   if ($_GET['field'] == 'by') {
+      $field = "by";
+   } elseif ($_GET['field'] == 'of') {
+      $field = "of";
+   } elseif ($_GET['field'] == 'acquired_at') {
+      $field = "acquired_at";
+   } elseif ($_GET['field'] == 'price_amount') {
+      $field = "price_amount";
+   }
+}
+$sql = "SELECT q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.price_amount,q1.price_currency_code,q2.acquired_at,q2.source_description from
       (select acquisitions.id,acquiring_object_id,normalized_name as By,price_amount,price_currency_code
        from acquisitions
       left join objects on objects.id=acquisitions.acquiring_object_id
@@ -20,7 +39,15 @@ $sql = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.price
       left join objects on objects.id=acquisitions.acquired_object_id
       order by id) as q2
       on q1.id=q2.id
-      order by acquired_at desc NULLS last,price_amount desc NULLS last;";
+      order by $field $sort NULLS last;";
+
+if (isset($_GET['sorting'])) {
+   if ($_GET['sorting'] == 'ASC') {
+      $sort = 'DESC';
+   } else {
+      $sort = 'ASC';
+   }
+}
 
 $result = pg_query($db, $sql);
 if (!$result) {
@@ -150,10 +177,10 @@ if (!$result) {
                               <table class="table">
                                  <thead>
                                     <tr>
-                                       <th>Acquiree Name</th>
-                                       <th>Acquirer Name</th>
-                                       <th>Acquired At</th>
-                                       <th>Price</th>
+                                       <th><a href="acquisitions.php?sorting=<?php echo $sort ?>&field=by">Acquiree Name</a></th>
+                                       <th><a href="acquisitions.php?sorting=<?php echo $sort ?>&field=of">Acquirer Name</a></th>
+                                       <th><a href="acquisitions.php?sorting=<?php echo $sort ?>&field=acquired_at">Acquired At</a></th>
+                                       <th><a href="acquisitions.php?sorting=<?php echo $sort ?>&field=price_amount">Price</a></th>
                                     </tr>
                                  </thead>
                                  <tbody>

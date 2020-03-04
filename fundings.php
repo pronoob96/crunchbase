@@ -4,11 +4,51 @@ session_start();
 
 // Check if the user is logged in, if not then redirect him to login page
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
-    exit;
+   header("location: login.php");
+   exit;
 }
 
 require "db.php";
+
+$field = 'q1.funded_at';
+$sort = 'DESC';
+if (isset($_GET['sorting'])) {
+   if ($_GET['sorting'] == 'ASC') {
+      $sort = 'DESC';
+   } else {
+      $sort = 'ASC';
+   }
+
+   if ($_GET['field'] == 'name') {
+      $field = "name";
+   } elseif ($_GET['field'] == 'funding_round_type') {
+      $field = "funding_round_type";
+   } elseif ($_GET['field'] == 'raised_amount_usd') {
+      $field = "raised_amount_usd";
+   } elseif ($_GET['field'] == 'investors') {
+      $field = "investors";
+   }
+}
+$sql = "Select q1.*,q2.* from
+(Select nm.name,funding_rounds.* from funding_rounds
+left join
+(select id,name from objects) as nm
+on nm.id = funding_rounds.object_id) as q1
+left join
+(Select t.funding_round_id,STRING_AGG(t.iname,', ') as investors
+from (Select nm.name as iname,investments.* from 
+(select id,name from objects) as nm,investments
+where nm.id = investments.investor_object_id) as t
+group by t.funding_round_id) as q2
+on q1.funding_round_id = q2.funding_round_id
+order by $field $sort NULLS last
+;";
+
+$result = pg_query($db, $sql);
+if (!$result) {
+   echo pg_last_error($db);
+   exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -71,34 +111,13 @@ require "db.php";
 </head>
 
 <body>
-   <?php
-   $sql = "Select q1.*,q2.* from
-(Select nm.name,funding_rounds.* from funding_rounds
-left join
-(select id,name from objects) as nm
-on nm.id = funding_rounds.object_id) as q1
-left join
-(Select t.funding_round_id,STRING_AGG(t.iname,', ') as investors
-from (Select nm.name as iname,investments.* from 
-(select id,name from objects) as nm,investments
-where nm.id = investments.investor_object_id) as t
-group by t.funding_round_id) as q2
-on q1.funding_round_id = q2.funding_round_id
-order by q1.funded_at DESC NULLS last
-;";
 
-   $result = pg_query($db, $sql);
-   if (!$result) {
-      echo pg_last_error($db);
-      exit;
-   }
-   ?>
    <table class=\"table\">
       <tr>
-         <th>Organization Name</th>
-         <th>Transaction Name</th>
-         <th>Money Raised</th>
-		 <th>Investors </th>
+         <th><a href="fundings.php?sorting=<?php echo $sort ?>&field=name">Organization Name</a></th>
+         <th><a href="fundings.php?sorting=<?php echo $sort ?>&field=funding_round_type">Transaction Name</a></th>
+         <th><a href="fundings.php?sorting=<?php echo $sort ?>&field=raised_amount_usd">Money Raised</a></th>
+         <th><a href="fundings.php?sorting=<?php echo $sort ?>&field=investors">Investors</a></th>
       </tr>
       <?php
       // output data of each row
@@ -108,7 +127,8 @@ order by q1.funded_at DESC NULLS last
             <td><a href="company.php?id=<?php echo $row[3]; ?>"><?php echo $row[0]; ?></a></td>
             <td><?php echo $row[5]; ?></td>
             <td>
-               <button id="myBtn"><?php echo $row[9] . " ";echo $row[8]; ?></button>
+               <button id="myBtn"><?php echo $row[9] . " ";
+                                    echo $row[8]; ?></button>
 
                <!-- The Modal -->
                <div id="myModal" class="modal">
@@ -122,7 +142,7 @@ order by q1.funded_at DESC NULLS last
                </div>
 
             </td>
-			<td><?php echo $row[25]; ?></a></td>
+            <td><?php echo $row[25]; ?></a></td>
          </tr>
       <?php
       } ?>
