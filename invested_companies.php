@@ -14,7 +14,8 @@ $sql = "SELECT distinct funded_object_id, nm.name, nm.founded_at, nm.tag_list, n
 FROM investments
 LEFT JOIN (Select id, name, founded_at, tag_list, category_code from objects) as nm
 ON investments.funded_object_id = nm.id
-where investor_object_id = '$cid'";
+where investor_object_id = '$cid'
+order by nm.name";
 
 $result = pg_query($db, $sql);
 if (!$result) {

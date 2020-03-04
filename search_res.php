@@ -10,7 +10,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 
 require "db.php";
 $name = $_GET['fname'];
-$sql = "SELECT * from objects where normalized_name LIKE '%$name%'";
+$type = $_GET['dropdown'];
+$sql = "SELECT * from objects where normalized_name LIKE '%$name%' and entity_type = '$type'";
 
 $result = pg_query($db, $sql);
 if (!$result) {
@@ -22,7 +23,7 @@ if (!$result) {
 <html lang="en">
 
 <head>
-    <title>Search Engine</title>
+    <title>Search Results</title>
 </head>
 
 <body>
@@ -39,7 +40,7 @@ if (!$result) {
             <tr>
                 <?php if ($row[1] == 'Company') { ?>
                     <td><a href="company.php?id=<?php echo $row[0]; ?>"><?php echo $row[4]; ?></a></td>
-                <?php } else if($row[1]== 'People') { ?>
+                <?php } else if($row[1]== 'Person') { ?>
                     <td><a href="people.php?id=<?php echo $row[0]; ?>"><?php echo $row[4]; ?></a></td>
                 <?php } else { ?>
                     <td><a href="ventures.php?id=<?php echo $row[0]; ?>"><?php echo $row[4]; ?></a></td>
