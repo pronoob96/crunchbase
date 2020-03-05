@@ -10,6 +10,15 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 
 require "db.php";
 
+if (isset($_GET['pageno'])) {
+   $pageno = $_GET['pageno'];
+} else {
+   $pageno = 1;
+}
+
+$no_of_records_per_page = 100;
+$offset = ($pageno - 1) * $no_of_records_per_page;
+
 $field = 'q1.num';
 $sort = 'DESC';
 if (isset($_GET['sorting'])) {
@@ -28,21 +37,26 @@ if (isset($_GET['sorting'])) {
    }
 }
 
+$count_sql = "SELECT count(*) from
+               (SELECT investor_object_id,count(distinct funded_object_id) as num from investments
+               group by investor_object_id) as q1
+               LEFT JOIN 
+               (SELECT id, name, last_investment_at FROM objects) AS nm 
+               ON nm.id = q1.investor_object_id;";
+
+$count_result = pg_query($db, $count_sql);
+$total_rows = pg_fetch_row($count_result)[0];
+$total_pages = ceil($total_rows / $no_of_records_per_page);
+
 $sql = "SELECT q1.investor_object_id, q1.num ,nm.name, nm.last_investment_at from
 (SELECT investor_object_id,count(distinct funded_object_id) as num from investments
 group by investor_object_id) as q1
 LEFT JOIN 
 (SELECT id, name, last_investment_at FROM objects) AS nm 
 ON nm.id = q1.investor_object_id
-order by $field $sort nulls last;";
-
-if (isset($_GET['sorting'])) {
-   if ($_GET['sorting'] == 'ASC') {
-      $sort = 'DESC';
-   } else {
-      $sort = 'ASC';
-   }
-}
+order by $field $sort nulls last
+OFFSET $offset
+LIMIT $no_of_records_per_page;";
 
 $result = pg_query($db, $sql);
 if (!$result) {
@@ -171,9 +185,21 @@ if (!$result) {
                               <table class="table">
                                  <thead>
                                     <tr>
-                                       <th><a href="allventures.php?sorting=<?php echo $sort ?>&field=name">Organization Name</a></th>
-                                       <th><a href="allventures.php?sorting=<?php echo $sort ?>&field=num">Number of Investments</a></th>
-                                       <th><a href="allventures.php?sorting=<?php echo $sort ?>&field=last_investment_at">Last investment at</a></th>
+                                       <th><a href="allventures.php?sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=name">Organization Name</a></th>
+                                       <th><a href="allventures.php?sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=num">Number of Investments</a></th>
+                                       <th><a href="allventures.php?sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=last_investment_at">Last investment at</a></th>
                                     </tr>
                                  </thead>
                                  <tbody>
@@ -201,6 +227,26 @@ if (!$result) {
          </div>
       </div>
    </div>
+
+   <ul class="pagination">
+      <li><a href="?sorting=<?php echo $sort ?>&field=<?php echo $field ?>&pageno=1">First</a></li>
+      <li class="<?php if ($pageno <= 1) {
+                     echo 'disabled';
+                  } ?>">
+         <a href="?sorting=<?php if ($pageno <= 1) {
+                              echo $sort; ?>&field=<?php echo $field; ?>&pageno=1<?php } else {
+                                                                                 echo $sort; ?>&field=<?php echo $field; ?>&pageno=<?php echo ($pageno - 1);
+                                                                              } ?>"> Prev</a> </li>
+      <li class="<?php if ($pageno >= $total_pages) {
+                     echo 'disabled';
+                  } ?>">
+         <a href="?sorting=<?php if ($pageno >= $total_pages) {
+                              echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo ($total_pages);
+                                                                           } else {
+                                                                              echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo ($pageno + 1);
+                                                                           } ?>"> Next</a> </li> 
+      <li><a href=" ?sorting=<?php echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo $total_pages; ?>">Last</a></li>
+   </ul>
 
    <!-- jquery vendor -->
    <script src="assets/js/lib/jquery.min.js"></script>

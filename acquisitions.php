@@ -9,8 +9,19 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 }
 
 require "db.php";
+
+if (isset($_GET['pageno'])) {
+   $pageno = $_GET['pageno'];
+} else {
+   $pageno = 1;
+}
+
+$no_of_records_per_page = 100;
+$offset = ($pageno - 1) * $no_of_records_per_page;
+
 $field = 'acquired_at';
 $sort = 'DESC';
+
 if (isset($_GET['sorting'])) {
    if ($_GET['sorting'] == 'DESC') {
       $sort = 'DESC';
@@ -28,6 +39,24 @@ if (isset($_GET['sorting'])) {
       $field = "price_amount";
    }
 }
+
+$count_sql = "SELECT count(*)
+            from
+               (select acquisitions.id,acquiring_object_id,normalized_name as By,price_amount,price_currency_code
+               from acquisitions
+               left join objects on objects.id=acquisitions.acquiring_object_id
+               order by id) as q1 
+            left join
+               (select acquisitions.id,acquired_object_id,normalized_name as OF,acquired_at,source_description
+               from acquisitions
+               left join objects on objects.id=acquisitions.acquired_object_id
+               order by id) as q2
+            on q1.id=q2.id;";
+
+$count_result = pg_query($db, $count_sql);
+$total_rows = pg_fetch_row($count_result)[0];
+$total_pages = ceil($total_rows / $no_of_records_per_page);
+
 $sql = "SELECT q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.price_amount,q1.price_currency_code,q2.acquired_at,q2.source_description from
       (select acquisitions.id,acquiring_object_id,normalized_name as By,price_amount,price_currency_code
        from acquisitions
@@ -39,15 +68,9 @@ $sql = "SELECT q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.price
       left join objects on objects.id=acquisitions.acquired_object_id
       order by id) as q2
       on q1.id=q2.id
-      order by $field $sort NULLS last;";
-
-if (isset($_GET['sorting'])) {
-   if ($_GET['sorting'] == 'ASC') {
-      $sort = 'DESC';
-   } else {
-      $sort = 'ASC';
-   }
-}
+      order by $field $sort NULLS last
+      OFFSET $offset
+      LIMIT $no_of_records_per_page;";
 
 $result = pg_query($db, $sql);
 if (!$result) {
@@ -177,10 +200,26 @@ if (!$result) {
                               <table class="table">
                                  <thead>
                                     <tr>
-                                       <th><a href="acquisitions.php?sorting=<?php echo $sort ?>&field=by">Acquiree Name</a></th>
-                                       <th><a href="acquisitions.php?sorting=<?php echo $sort ?>&field=of">Acquirer Name</a></th>
-                                       <th><a href="acquisitions.php?sorting=<?php echo $sort ?>&field=acquired_at">Acquired At</a></th>
-                                       <th><a href="acquisitions.php?sorting=<?php echo $sort ?>&field=price_amount">Price</a></th>
+                                       <th><a href="acquisitions.php?sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=by">Acquiree Name</a></th>
+                                       <th><a href="acquisitions.php?sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=of">Acquirer Name</a></th>
+                                       <th><a href="acquisitions.php?sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=acquired_at">Acquired At</a></th>
+                                       <th><a href="acquisitions.php?sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=price_amount">Price</a></th>
                                     </tr>
                                  </thead>
                                  <tbody>
@@ -250,6 +289,48 @@ if (!$result) {
          </div>
       </div>
    </div>
+
+   <!-- <ul class="pagination">
+      <li><a href="?sorting=<?php echo $sort ?>&field=<?php echo $field ?>&pageno=1">First</a></li>
+      <li class="<?php if ($pageno <= 1) {
+                     echo 'disabled';
+                  } ?>">
+         <a href="<?php if ($pageno <= 1) {
+                     echo '#';
+                  } else {
+                     echo "?pageno=" . ($pageno - 1);
+                  } ?>">Prev</a>
+      </li>
+      <li class="<?php if ($pageno >= $total_pages) {
+                     echo 'disabled';
+                  } ?>">
+         <a href="<?php if ($pageno >= $total_pages) {
+                     echo '#';
+                  } else {
+                     echo "?pageno=" . ($pageno + 1);
+                  } ?>">Next</a>
+      </li>
+      <li><a href="?pageno=<?php echo $total_pages; ?>">Last</a></li>
+   </ul> -->
+   <ul class="pagination">
+      <li><a href="?sorting=<?php echo $sort ?>&field=<?php echo $field ?>&pageno=1">First</a></li>
+      <li class="<?php if ($pageno <= 1) {
+                     echo 'disabled';
+                  } ?>">
+         <a href="?sorting=<?php if ($pageno <= 1) {
+                              echo $sort; ?>&field=<?php echo $field; ?>&pageno=1<?php } else {
+                                                                                 echo $sort; ?>&field=<?php echo $field; ?>&pageno=<?php echo ($pageno - 1);
+                                                                              } ?>"> Prev</a> </li>
+      <li class="<?php if ($pageno >= $total_pages) {
+                     echo 'disabled';
+                  } ?>">
+         <a href="?sorting=<?php if ($pageno >= $total_pages) {
+                              echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo ($total_pages);
+                                                                           } else {
+                                                                              echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo ($pageno + 1);
+                                                                           } ?>"> Next</a> </li> 
+      <li><a href=" ?sorting=<?php echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo $total_pages; ?>">Last</a></li>
+   </ul>
 
    <!-- jquery vendor -->
    <script src="assets/js/lib/jquery.min.js"></script>

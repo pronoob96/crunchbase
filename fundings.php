@@ -10,10 +10,19 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 
 require "db.php";
 
+if (isset($_GET['pageno'])) {
+   $pageno = $_GET['pageno'];
+} else {
+   $pageno = 1;
+}
+
+$no_of_records_per_page = 100;
+$offset = ($pageno - 1) * $no_of_records_per_page;
+
 $field = 'q1.funded_at';
 $sort = 'DESC';
 if (isset($_GET['sorting'])) {
-   if ($_GET['sorting'] == 'ASC') {
+   if ($_GET['sorting'] == 'DESC') {
       $sort = 'DESC';
    } else {
       $sort = 'ASC';
@@ -29,6 +38,26 @@ if (isset($_GET['sorting'])) {
       $field = "investors";
    }
 }
+
+$count_sql = "Select count(*) from
+               (Select nm.name,funding_rounds.* from funding_rounds
+               left join
+               (select id,name from objects) as nm
+               on nm.id = funding_rounds.object_id) as q1
+               left join
+               (Select t.funding_round_id,STRING_AGG(t.iname,', ') as investors
+               from (Select nm.name as iname,investments.* from 
+               (select id,name from objects) as nm,investments
+               where nm.id = investments.investor_object_id) as t
+               group by t.funding_round_id) as q2
+               on q1.funding_round_id = q2.funding_round_id
+               ";
+
+$count_result = pg_query($db, $count_sql);
+$total_rows = pg_fetch_row($count_result)[0];
+$total_pages = ceil($total_rows / $no_of_records_per_page);
+
+
 $sql = "Select q1.*,q2.* from
 (Select nm.name,funding_rounds.* from funding_rounds
 left join
@@ -42,7 +71,8 @@ where nm.id = investments.investor_object_id) as t
 group by t.funding_round_id) as q2
 on q1.funding_round_id = q2.funding_round_id
 order by $field $sort NULLS last
-;";
+OFFSET $offset
+LIMIT $no_of_records_per_page;";
 
 $result = pg_query($db, $sql);
 if (!$result) {
@@ -172,10 +202,26 @@ if (!$result) {
                               <table class="table">
                                  <thead>
                                     <tr>
-                                       <th><a href="fundings.php?sorting=<?php echo $sort ?>&field=name">Organization Name</a></th>
-                                       <th><a href="fundings.php?sorting=<?php echo $sort ?>&field=funding_round_type">Transaction Name</a></th>
-                                       <th><a href="fundings.php?sorting=<?php echo $sort ?>&field=raised_amount_usd">Money Raised</a></th>
-                                       <th><a href="fundings.php?sorting=<?php echo $sort ?>&field=investors">Investors</a></th>
+                                       <th><a href="fundings.php?sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=name">Organization Name</a></th>
+                                       <th><a href="fundings.php?sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=funding_round_type">Transaction Name</a></th>
+                                       <th><a href="fundings.php?sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=raised_amount_usd">Money Raised</a></th>
+                                       <th><a href="fundings.php?sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=investors">Investors</a></th>
                                     </tr>
                                  </thead>
                                  <tbody>
@@ -218,6 +264,26 @@ if (!$result) {
          </div>
       </div>
    </div>
+
+   <ul class="pagination">
+      <li><a href="?sorting=<?php echo $sort ?>&field=<?php echo $field ?>&pageno=1">First</a></li>
+      <li class="<?php if ($pageno <= 1) {
+                     echo 'disabled';
+                  } ?>">
+         <a href="?sorting=<?php if ($pageno <= 1) {
+                              echo $sort; ?>&field=<?php echo $field; ?>&pageno=1<?php } else {
+                                                                                 echo $sort; ?>&field=<?php echo $field; ?>&pageno=<?php echo ($pageno - 1);
+                                                                              } ?>"> Prev</a> </li>
+      <li class="<?php if ($pageno >= $total_pages) {
+                     echo 'disabled';
+                  } ?>">
+         <a href="?sorting=<?php if ($pageno >= $total_pages) {
+                              echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo ($total_pages);
+                                                                           } else {
+                                                                              echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo ($pageno + 1);
+                                                                           } ?>"> Next</a> </li> 
+      <li><a href=" ?sorting=<?php echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo $total_pages; ?>">Last</a></li>
+   </ul>
 
    <!-- jquery vendor -->
    <script src="assets/js/lib/jquery.min.js"></script>
