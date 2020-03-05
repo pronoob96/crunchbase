@@ -41,7 +41,7 @@ $count_sql = "SELECT count(*) from
                (SELECT investor_object_id,count(distinct funded_object_id) as num from investments
                group by investor_object_id) as q1
                LEFT JOIN 
-               (SELECT id, name, last_investment_at FROM objects) AS nm 
+               (SELECT id, name, last_investment_at FROM obj_view) AS nm 
                ON nm.id = q1.investor_object_id;";
 
 $count_result = pg_query($db, $count_sql);
@@ -52,7 +52,7 @@ $sql = "SELECT q1.investor_object_id, q1.num ,nm.name, nm.last_investment_at fro
 (SELECT investor_object_id,count(distinct funded_object_id) as num from investments
 group by investor_object_id) as q1
 LEFT JOIN 
-(SELECT id, name, last_investment_at FROM objects) AS nm 
+(SELECT id, name, last_investment_at FROM obj_view) AS nm 
 ON nm.id = q1.investor_object_id
 order by $field $sort nulls last
 OFFSET $offset

@@ -44,12 +44,12 @@ $count_sql = "SELECT count(*)
             from
                (select acquisitions.id,acquiring_object_id,normalized_name as By,price_amount,price_currency_code
                from acquisitions
-               left join objects on objects.id=acquisitions.acquiring_object_id
+               left join obj_view on obj_view.id=acquisitions.acquiring_object_id
                order by id) as q1 
             left join
                (select acquisitions.id,acquired_object_id,normalized_name as OF,acquired_at,source_description
                from acquisitions
-               left join objects on objects.id=acquisitions.acquired_object_id
+               left join obj_view on obj_view.id=acquisitions.acquired_object_id
                order by id) as q2
             on q1.id=q2.id;";
 
@@ -60,12 +60,12 @@ $total_pages = ceil($total_rows / $no_of_records_per_page);
 $sql = "SELECT q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.price_amount,q1.price_currency_code,q2.acquired_at,q2.source_description from
       (select acquisitions.id,acquiring_object_id,normalized_name as By,price_amount,price_currency_code
        from acquisitions
-      left join objects on objects.id=acquisitions.acquiring_object_id
+      left join obj_view on obj_view.id=acquisitions.acquiring_object_id
       order by id) as q1 
       left join
       (select acquisitions.id,acquired_object_id,normalized_name as OF,acquired_at,source_description
        from acquisitions
-      left join objects on objects.id=acquisitions.acquired_object_id
+      left join obj_view on obj_view.id=acquisitions.acquired_object_id
       order by id) as q2
       on q1.id=q2.id
       order by $field $sort NULLS last

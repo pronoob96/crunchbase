@@ -42,12 +42,12 @@ if (isset($_GET['sorting'])) {
 $count_sql = "Select count(*) from
                (Select nm.name,funding_rounds.* from funding_rounds
                left join
-               (select id,name from objects) as nm
+               (select id,name from obj_view) as nm
                on nm.id = funding_rounds.object_id) as q1
                left join
                (Select t.funding_round_id,STRING_AGG(t.iname,', ') as investors
                from (Select nm.name as iname,investments.* from 
-               (select id,name from objects) as nm,investments
+               (select id,name from obj_view) as nm,investments
                where nm.id = investments.investor_object_id) as t
                group by t.funding_round_id) as q2
                on q1.funding_round_id = q2.funding_round_id
@@ -61,12 +61,12 @@ $total_pages = ceil($total_rows / $no_of_records_per_page);
 $sql = "Select q1.*,q2.* from
 (Select nm.name,funding_rounds.* from funding_rounds
 left join
-(select id,name from objects) as nm
+(select id,name from obj_view) as nm
 on nm.id = funding_rounds.object_id) as q1
 left join
 (Select t.funding_round_id,STRING_AGG(t.iname,', ') as investors
 from (Select nm.name as iname,investments.* from 
-(select id,name from objects) as nm,investments
+(select id,name from obj_view) as nm,investments
 where nm.id = investments.investor_object_id) as t
 group by t.funding_round_id) as q2
 on q1.funding_round_id = q2.funding_round_id

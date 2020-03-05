@@ -11,7 +11,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 require "db.php";
 $name = $_GET['fname'];
 $type = $_GET['dropdown'];
-$sql = "SELECT * from objects where normalized_name LIKE '%$name%' and category_code = '$type'";
+$sql = "SELECT * from obj_view where normalized_name LIKE '%$name%' and category_code = '$type'";
 
 $result = pg_query($db, $sql);
 if (!$result) {

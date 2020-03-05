@@ -10,11 +10,11 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 
 require "db.php";
 $cid = $_GET['id'];
-$sql = "SELECT people.*,objects.name,objects.overview, objects.logo_url
+$sql = "SELECT people.*,obj_view.name,obj_view.overview, obj_view.logo_url
 			from
 			(SELECT * from people 
-				where object_id='$cid') AS people,objects
-			where objects.id = people.object_id";
+				where object_id='$cid') AS people,obj_view
+			where obj_view.id = people.object_id";
 
 $result = pg_query($db, $sql);
 if (!$result) {
@@ -34,7 +34,7 @@ $row1 = pg_fetch_row($result1);
 
 $sql2 = " SELECT nm.name,relationships.* FROM relationships
  LEFT JOIN
- (select name,id from objects) as nm
+ (select name,id from obj_view) as nm
  ON relationships.relationship_object_id = nm.id
  WHERE relationships.person_object_id = '$cid';";
 

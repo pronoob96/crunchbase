@@ -42,7 +42,7 @@ if (isset($_GET['sorting'])) {
 
 $count_sql = "Select count(*) from ipos
                left join
-               (select id,name from objects) as nm
+               (select id,name from obj_view) as nm
                on ipos.object_id = nm.id";
 
 $count_result = pg_query($db, $count_sql);
@@ -51,7 +51,7 @@ $total_pages = ceil($total_rows / $no_of_records_per_page);
 
 $sql = "Select nm.name,ipos.* from ipos
          left join
-         (select id,name from objects) as nm
+         (select id,name from obj_view) as nm
          on ipos.object_id = nm.id
          order by $field $sort NULLS last
          OFFSET $offset

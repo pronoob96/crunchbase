@@ -12,12 +12,12 @@ require "db.php";
 $sql = "Select q1.*,q2.* from
 (Select nm.name,funding_rounds.* from funding_rounds
 left join
-(select id,name from objects) as nm
+(select id,name from obj_view) as nm
 on nm.id = funding_rounds.object_id) as q1
 left join
 (Select t.funding_round_id,STRING_AGG(t.iname,', ') as investors
 from (Select nm.name as iname,investments.* from 
-(select id,name from objects) as nm,investments
+(select id,name from obj_view) as nm,investments
 where nm.id = investments.investor_object_id) as t
 group by t.funding_round_id) as q2
 on q1.funding_round_id = q2.funding_round_id
@@ -33,12 +33,12 @@ if (!$result) {
 $sql1 = "select q1.acquiring_object_id,q2.acquired_object_id,q1.By,q2.OF,q1.price_amount,q1.price_currency_code,q2.acquired_at,q2.source_description from
       (select acquisitions.id,acquiring_object_id,normalized_name as By,price_amount,price_currency_code
        from acquisitions
-      left join objects on objects.id=acquisitions.acquiring_object_id
+      left join obj_view on obj_view.id=acquisitions.acquiring_object_id
       order by id) as q1 
       left join
       (select acquisitions.id,acquired_object_id,normalized_name as OF,acquired_at,source_description
        from acquisitions
-      left join objects on objects.id=acquisitions.acquired_object_id
+      left join obj_view on obj_view.id=acquisitions.acquired_object_id
       order by id) as q2
       on q1.id=q2.id
       order by acquired_at desc NULLS last,price_amount desc NULLS last LIMIT 10;";
@@ -51,7 +51,7 @@ if (!$result1) {
 
 $sql2 = "Select nm.name,ipos.* from ipos
 left join
-(select id,name from objects) as nm
+(select id,name from obj_view) as nm
 on ipos.object_id = nm.id
 order by ipos.public_at desc NULLS last
 LIMIT 10;";
@@ -66,7 +66,7 @@ $sql3 = "SELECT q1.investor_object_id, q1.num ,nm.name, nm.last_investment_at fr
 (SELECT investor_object_id,count(distinct funded_object_id) as num from investments
 group by investor_object_id) as q1
 LEFT JOIN 
-(SELECT id, name, last_investment_at FROM objects) AS nm 
+(SELECT id, name, last_investment_at FROM obj_view) AS nm 
 ON nm.id = q1.investor_object_id
 order by q1.num DESC LIMIT 10;";
 
@@ -79,9 +79,9 @@ if (!$result3) {
 $username = $_SESSION['username'];
 
 $sql4 = "Select nm.name,milestones.* from milestones,
-(select objects.id as id,objects.name as name
-from objects,follows
-where follows.username='$username' and objects.id=follows.company_id
+(select obj_view.id as id,obj_view.name as name
+from obj_view,follows
+where follows.username='$username' and obj_view.id=follows.company_id
 ) as nm
 where milestones.object_id = nm.id
 order by milestones.milestone_at desc NULLS last LIMIT 10;";
@@ -92,7 +92,7 @@ if (!$result4) {
     exit;
 }
 
-$sql5 = "SELECT category_code,count(id) from objects
+$sql5 = "SELECT category_code,count(id) from obj_view
 where category_code is not NULL
 group by category_code
 order by count(id) DESC;";
