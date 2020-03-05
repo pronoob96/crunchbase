@@ -40,23 +40,23 @@ LEFT JOIN
 ON offices.object_id = nm.id
 where object_id = '$cid';";
 
-   $result2 = pg_query($db, $sql2);
-   if (!$result2) {
-      echo pg_last_error($db);
-      exit;
-   }
+$result2 = pg_query($db, $sql2);
+if (!$result2) {
+    echo pg_last_error($db);
+    exit;
+}
 
 $sql3 = "SELECT * from objects
 where invested_companies <> 0
 and entity_type = 'Company'
 order by invested_companies DESC;";
 
-   $result3 = pg_query($db, $sql3);
-   if (!$result3) {
-      echo pg_last_error($db);
-      exit;
-   }
-   
+$result3 = pg_query($db, $sql3);
+if (!$result3) {
+    echo pg_last_error($db);
+    exit;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -80,8 +80,8 @@ order by invested_companies DESC;";
             color: red;
         }
     </style>
-    
-    
+
+
 </head>
 
 <body>
@@ -99,37 +99,44 @@ order by invested_companies DESC;";
             $favcl = "fa-heart-o";
         } else {
             $favcl = "fa-heart";
-            
         }
         ?>
         <div style="float: right;">
-        <a  onclick='addfav("<?php echo $row[0] ?>")' ><i class="<?php echo $user ?> fa <?php echo $favcl ?> favo" ></i></a>
+            <a onclick='addfav("<?php echo $row[0] ?>")'><i class="<?php echo $user ?> fa <?php echo $favcl ?> favo"></i></a>
         </div>
 
         <script>
-        $(".<?php echo $user?>").click(function() {
-        $(this).toggleClass("fa-heart fa-heart-o");
-         });
-       </script>
-       <script>
-      function addfav(str) {
-        
-        if (window.XMLHttpRequest) {
-          // code for IE7+, Firefox, Chrome, Opera, Safari
-          xmlhttp=new XMLHttpRequest();
-        } else { // code for IE6, IE5
-          xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-        }
-        // xmlhttp.onreadystatechange=function() {
-        //   if (this.readyState==4 && this.status==200) {
-        //     document.getElementById("txtHint").innerHTML=this.responseText;
-        //   }
-        // }
-        xmlhttp.open("GET","follow.php?q="+str,true);
-        xmlhttp.send();
-        // location.reload();
-      }
-    </script>
+            $(".<?php echo $user ?>").click(function() {
+                $(this).toggleClass("fa-heart fa-heart-o");
+            });
+        </script>
+        <script>
+            function addfav(str) {
+
+                if (window.XMLHttpRequest) {
+                    // code for IE7+, Firefox, Chrome, Opera, Safari
+                    xmlhttp = new XMLHttpRequest();
+                } else { // code for IE6, IE5
+                    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                // xmlhttp.onreadystatechange=function() {
+                //   if (this.readyState==4 && this.status==200) {
+                //     document.getElementById("txtHint").innerHTML=this.responseText;
+                //   }
+                // }
+                xmlhttp.open("GET", "follow.php?q=" + str, true);
+                xmlhttp.send();
+                // location.reload();
+            }
+        </script>
+    </div>
+
+    </div>
+    
+    <div>
+        <h4>
+            No. of followers: <?php echo $row[40] ?>
+        </h4>
     </div>
 
     <table class=\"table\">
@@ -152,24 +159,32 @@ order by invested_companies DESC;";
     pg_close($db);
     ?>
 
-    
+
     <?php
     // output data of each row
-    if($row1 == true)
-        echo "Key People:";echo "</br>";  
+    if ($row1 == true)
+        echo "Key People:";
+    echo "</br>";
     while ($row1 = pg_fetch_row($result1)) { ?>
-        <a href="people.php?id=<?php echo $row1[0];?>"><?php echo $row1[2];?></a> 
-     <?php   echo "</br>";
+        <a href="people.php?id=<?php echo $row1[0]; ?>"><?php echo $row1[2]; ?></a>
+    <?php echo "</br>";
     } ?>
 
     <?php
-    if($row[28]>0)
-    {   echo "Investment History: Known to invest in new Start-Ups and Services Companies"; echo "</br>";
-        echo "Number of Investments-"; echo $row[28];echo "</br>";
-        echo "First Investment at-"; echo $row[25];echo "</br>";
-        echo "Last Investment at-"; echo $row[26];echo "</br>"; ?>
+    if ($row[28] > 0) {
+        echo "Investment History: Known to invest in new Start-Ups and Services Companies";
+        echo "</br>";
+        echo "Number of Investments-";
+        echo $row[28];
+        echo "</br>";
+        echo "First Investment at-";
+        echo $row[25];
+        echo "</br>";
+        echo "Last Investment at-";
+        echo $row[26];
+        echo "</br>"; ?>
         <a href="invested_companies.php?id=<?php echo $row[0]; ?>">Detail of Invested Companies</a>
-        <?php
+    <?php
     } ?>
 </body>
 

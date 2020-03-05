@@ -147,6 +147,12 @@ order by count(mn.id) DESC
     </script>
     </div>
 
+    <div>
+        <h4>
+            No. of followers: <?php echo $row[40] ?>
+        </h4>
+    </div>
+
     <table class=\"table\">
         <tr>
             <th>Name</th>
