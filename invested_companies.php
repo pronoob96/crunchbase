@@ -12,7 +12,7 @@ require "db.php";
 $cid = $_GET['id'];
 $sql = "SELECT distinct funded_object_id, nm.name, nm.founded_at, nm.tag_list, nm.category_code 
 FROM investments
-LEFT JOIN (Select id, name, founded_at, tag_list, category_code from objects) as nm
+LEFT JOIN (Select id, name, founded_at, tag_list, category_code from obj_view) as nm
 ON investments.funded_object_id = nm.id
 where investor_object_id = '$cid'
 order by nm.name";

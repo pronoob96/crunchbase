@@ -9,9 +9,47 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 }
 
 require "db.php";
+
+if (isset($_GET['pageno'])) {
+    $pageno = $_GET['pageno'];
+ } else {
+    $pageno = 1;
+ }
+ 
+ $no_of_records_per_page = 100;
+ $offset = ($pageno - 1) * $no_of_records_per_page;
+
 $name = $_GET['fname'];
 $type = $_GET['dropdown'];
-$sql = "SELECT * from obj_view where normalized_name LIKE '%$name%' and category_code = '$type'";
+
+$field = 'name';
+$sort = 'DESC';
+if (isset($_GET['sorting'])) {
+    if ($_GET['sorting'] == 'DESC') {
+       $sort = 'DESC';
+    } else {
+       $sort = 'ASC';
+    }
+ 
+    if ($_GET['field'] == 'name') {
+       $field = "name";
+    } elseif ($_GET['field'] == 'entity_type') {
+       $field = "entity_type";
+    } elseif ($_GET['field'] == 'founded_at') {
+       $field = "founded_at";
+    }
+ }
+
+$count_sql = "SELECT count(*) from obj_view where normalized_name LIKE '%$name%' and category_code = '$type';";
+
+$count_result = pg_query($db, $count_sql);
+$total_rows = pg_fetch_row($count_result)[0];
+$total_pages = ceil($total_rows / $no_of_records_per_page);
+
+$sql = "SELECT * from obj_view where normalized_name LIKE '%$name%' and category_code = '$type'
+        order by $field $sort nulls last
+        OFFSET $offset
+        LIMIT $no_of_records_per_page;";
 
 $result = pg_query($db, $sql);
 if (!$result) {
@@ -29,9 +67,21 @@ if (!$result) {
 <body>
     <table class=\"table\">
         <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Founded At</th>
+            <th><a href="search_type.php?fname=<?php echo $name;?>&dropdown=<?php echo $type;?>&sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=name">Name</a></th>
+            <th><a href="search_type.php?fname=<?php echo $name;?>&dropdown=<?php echo $type;?>&sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=entity_type">Type</a></th>
+            <th><a href="search_type.php?fname=<?php echo $name;?>&dropdown=<?php echo $type;?>&sorting=<?php if ($sort == 'DESC') {
+                                                                                 echo 'ASC';
+                                                                              } else {
+                                                                                 echo 'DESC';
+                                                                              } ?>&field=founded_at">Founded At</a></th>
         </tr>
         <?php
         // output data of each row
@@ -54,6 +104,26 @@ if (!$result) {
     <?php
     pg_close($db);
     ?>
+
+<ul class="pagination">
+      <li><a href="?fname=<?php echo $name;?>&dropdown=<?php echo $type;?>&sorting=<?php echo $sort ?>&field=<?php echo $field ?>&pageno=1">First</a></li>
+      <li class="<?php if ($pageno <= 1) {
+                     echo 'disabled';
+                  } ?>">
+         <a href="?fname=<?php echo $name;?>&dropdown=<?php echo $type;?>&sorting=<?php if ($pageno <= 1) {
+                              echo $sort; ?>&field=<?php echo $field; ?>&pageno=1<?php } else {
+                                                                                 echo $sort; ?>&field=<?php echo $field; ?>&pageno=<?php echo ($pageno - 1);
+                                                                              } ?>"> Prev</a> </li>
+      <li class="<?php if ($pageno >= $total_pages) {
+                     echo 'disabled';
+                  } ?>">
+         <a href="?fname=<?php echo $name;?>&dropdown=<?php echo $type;?>&sorting=<?php if ($pageno >= $total_pages) {
+                              echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo ($total_pages);
+                                                                           } else {
+                                                                              echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo ($pageno + 1);
+                                                                           } ?>"> Next</a> </li> 
+      <li><a href="?fname=<?php echo $name;?>&dropdown=<?php echo $type;?>&sorting=<?php echo $sort ?>&field=<?php echo $field ?>&pageno=<?php echo $total_pages; ?>">Last</a></li>
+   </ul>
 
 </body>
 

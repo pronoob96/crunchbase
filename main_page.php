@@ -173,7 +173,7 @@ if (!$result5) {
                     <form id="searchForm" action="search_type.php" method="get" autocomplete="off">
                       <div class="row">
                         <div class="col-sm-6">
-                          <input type="text" placeholder="Search by sector" name="fname" required>
+                          <input type="text" placeholder="Search by sector" name="fname">
                             <select name="dropdown" id="dropdown">
                             <?php 
                             while ($row5 = pg_fetch_row($result5)) { ?>
@@ -181,7 +181,7 @@ if (!$result5) {
                             <?php
                             } ?>
                           </select>
-                        <input name="submitbutton" type="submit" value="submit" />
+                        <button type="submit" class="btn btn-primary" />Submit</button>
                       </div>
                     </div>
 
